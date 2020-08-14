@@ -23,19 +23,22 @@ class Task<T> {
     }
 
     void start() {
+        currentTask.set(this);
+
         state = TaskState.RUNNING;
 
-        currentTask.set(this);
         try {
-
             final T result = supplier.get();
             completableFuture.complete(result);
-
-            scheduler.stop(this);
-
-        } finally {
-            currentTask.set(null);
+        } catch (final Throwable t) {
+            completableFuture.completeExceptionally(t);
         }
+
+        state = TaskState.TERMINATED;
+
+        currentTask.set(null);
+
+        scheduler.stop(this);
     }
 
     void resume() {
