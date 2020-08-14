@@ -53,13 +53,16 @@ class Task<T> {
 
     void blockEnd() {
         synchronized (this) {
+            // This call may resume this task
             scheduler.add(this);
 
-            try {
-                this.wait();
-            } catch (final InterruptedException e) {
-                // TODO Do proper error handling
-                e.printStackTrace();
+            if (state == TaskState.BLOCKED) {
+                try {
+                    this.wait();
+                } catch (final InterruptedException e) {
+                    // TODO Do proper error handling
+                    e.printStackTrace();
+                }
             }
         }
     }

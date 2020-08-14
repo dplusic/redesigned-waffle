@@ -13,7 +13,6 @@ public class MainTest {
 
     @Test
     public void test() throws Exception {
-        w.start();
         new MetricsMonitor(w.getMetrics()).start();
 
         CompletableFuture.allOf(

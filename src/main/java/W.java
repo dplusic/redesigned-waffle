@@ -14,10 +14,6 @@ public class W {
         metrics = new Metrics(scheduler);
     }
 
-    public void start() {
-        scheduler.start();
-    }
-
     public Metrics getMetrics() {
         return metrics;
     }

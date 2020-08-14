@@ -2,44 +2,36 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class Scheduler {
     private final BlockingQueue<Task<?>> taskQueue = new ArrayBlockingQueue<>(1000);
+    private final AtomicInteger taskCount = new AtomicInteger(0);
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private final BlockingQueue<Task<?>> currentRunningTasks;
+    private final int maxRunning;
 
     Scheduler(final int maxRunning) {
-        currentRunningTasks = new ArrayBlockingQueue<>(maxRunning);
-    }
-
-    void start() {
-        new Thread(this::run).start();
+        this.maxRunning = maxRunning;
     }
 
     void add(final Task<?> task) {
         taskQueue.add(task);
-    }
 
-    void stop(final Task<?> task) {
-        currentRunningTasks.remove(task);
-    }
-
-    private void run() {
-        try {
-            while (true) {
-                final var task = taskQueue.take();
-                processTask(task);
-            }
-        } catch (final InterruptedException e) {
-            e.printStackTrace();
+        if (taskCount.getAndIncrement() < maxRunning) {
+            processTask();
         }
     }
 
-    private void processTask(final Task<?> task) throws InterruptedException {
-        currentRunningTasks.put(task);
+    void stop(final Task<?> task) {
+        if (taskCount.decrementAndGet() >= maxRunning) {
+            processTask();
+        }
+    }
 
+    private void processTask() {
+        final Task<?> task = taskQueue.remove();
         if (task.getState().isStarted()) {
             task.resume();
         } else {
@@ -52,6 +44,6 @@ class Scheduler {
     }
 
     int getCurrentRunningTasks() {
-        return currentRunningTasks.size();
+        return Math.min(taskCount.get(), maxRunning);
     }
 }
