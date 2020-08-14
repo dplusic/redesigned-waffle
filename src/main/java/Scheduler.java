@@ -8,12 +8,10 @@ class Scheduler {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private final int maxRunning;
     private final BlockingQueue<Task<?>> currentRunningTasks;
 
     Scheduler(final int maxRunning) {
-        this.maxRunning = maxRunning;
-        this.currentRunningTasks = new ArrayBlockingQueue<>(this.maxRunning);
+        currentRunningTasks = new ArrayBlockingQueue<>(maxRunning);
     }
 
     void start() {
@@ -39,13 +37,8 @@ class Scheduler {
         }
     }
 
-    private void processTask(final Task<?> task) {
-        try {
-            currentRunningTasks.put(task);
-        } catch (final InterruptedException e) {
-            // TODO proper error handling
-            e.printStackTrace();
-        }
+    private void processTask(final Task<?> task) throws InterruptedException {
+        currentRunningTasks.put(task);
 
         if (task.getState().isStarted()) {
             task.resume();

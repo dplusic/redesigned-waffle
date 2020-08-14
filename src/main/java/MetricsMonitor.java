@@ -13,13 +13,17 @@ public class MetricsMonitor {
     private void run() {
         try {
             while (true) {
-                System.out.println("[Metrics]" +
-                    " running: " + metrics.currentRunningTasks() +
-                    " queue: " + metrics.taskQueueSize());
+                printMetrics();
                 Thread.sleep(100L);
             }
-        } catch (final Exception e) {
+        } catch (final InterruptedException e) {
             // Do nothing
         }
+    }
+
+    private void printMetrics() {
+        System.out.println("[Metrics]" +
+            " running: " + metrics.currentRunningTasks() +
+            " queue: " + metrics.taskQueueSize());
     }
 }
